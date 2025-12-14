@@ -17,6 +17,13 @@ const messageInput = document.getElementById('messageInput');
 const imageInput = document.getElementById('imageInput');
 const sendBtn = document.getElementById('sendBtn');
 
+const chatForm = document.getElementById('chatForm');
+
+chatForm.addEventListener('submit', (e) => {
+  e.preventDefault();   // ⭐ 防止表單刷新頁面
+  sendTextMessage();    // ⭐ 只從這裡送訊息
+});
+
 // ====== 狀態 ======
 let currentRoom = null;
 
@@ -181,12 +188,8 @@ joinRoomBtn.addEventListener('click', () => {
 });
 
 // 送出文字訊息
-sendBtn.addEventListener('click', sendTextMessage);
-messageInput.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') {
-    sendTextMessage();
-  }
-});
+
+
 
 function sendTextMessage() {
   if (!currentRoom) {

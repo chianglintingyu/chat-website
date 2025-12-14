@@ -41,14 +41,19 @@
       <section id="messages" class="messages"></section>
 
       <footer class="chat-input-area">
+       <form id="chatForm" style="display: flex; gap: 8px; width: 100%;">
         <input
           id="messageInput"
           type="text"
-          placeholder="輸入訊息後按 Enter 或傳送"
-        />
+          placeholder="輸入訊息後按 Enter 或點送出"
+          autocomplete="off"
+          style="flex: 1;"
+       />
         <input id="imageInput" type="file" accept="image/*" />
-        <button id="sendBtn">傳送</button>
+        <button id="sendBtn" type="submit">傳送</button>
+       </form>
       </footer>
+
     </main>
   </div>
 
