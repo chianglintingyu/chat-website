@@ -234,3 +234,57 @@ imageInput.addEventListener('change', () => {
   // 清空 input 避免同一張圖不能再傳
   imageInput.value = '';
 });
+
+
+let contextMenu = null;
+
+function showRoomMenu(x, y, roomName) {
+  if (contextMenu) contextMenu.remove();
+
+  contextMenu = document.createElement('div');
+  contextMenu.className = 'context-menu';
+  contextMenu.style.left = `${x}px`;
+  contextMenu.style.top = `${y}px`;
+
+  const rename = document.createElement('div');
+  rename.textContent = '重新命名';
+  rename.onclick = () => {
+    renameRoom(roomName);
+    contextMenu.remove();
+  };
+
+  const del = document.createElement('div');
+  del.textContent = '刪除房間';
+  del.onclick = () => {
+    deleteRoom(roomName);
+    contextMenu.remove();
+  };
+
+  contextMenu.appendChild(rename);
+  contextMenu.appendChild(del);
+  document.body.appendChild(contextMenu);
+}
+
+// 點其他地方關掉右鍵選單
+document.addEventListener('click', () => {
+  if (contextMenu) contextMenu.remove();
+});
+
+function renameRoom(oldName) {
+  const newName = prompt('請輸入新的房間名稱', oldName);
+  if (!newName || newName === oldName) return;
+
+  socket.emit('renameRoom', {
+    oldName,
+    newName: newName.trim(),
+  });
+}
+
+function deleteRoom(roomName) {
+  if (!confirm(`確定要刪除房間「${roomName}」嗎？`)) return;
+
+  socket.emit('deleteRoom', { roomName });
+}
+
+
+

@@ -38,17 +38,25 @@ body {
 }
 
 .room-item {
-  padding: 6px 8px;
+  padding: 8px 10px;              /* 稍微大一點，比較像按鈕 */
   margin-bottom: 4px;
   background: #323f4b;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
   font-size: 14px;
+
+  /* ⭐ 重點：過渡動畫 */
+  transition: 
+    background-color 0.15s ease,
+    color 0.15s ease;
 }
 
+/* ⭐ hover：顏色變亮，告訴使用者「可點」 */
 .room-item:hover {
   background: #52606d;
+  color: #ffffff;
 }
+
 
 .user-block,
 .room-block {
@@ -186,3 +194,5 @@ body {
 .chat-input-area button:hover {
   background: #059669;
 }
+
+
