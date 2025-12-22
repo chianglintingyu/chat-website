@@ -8,7 +8,26 @@
 </head>
 <body>
   <div id="chat-container">
-    <h2>💬 即時聊天室</h2>
+    <div id="chat-header">
+      <div>
+        <h2>💬 即時聊天室</h2>
+        <p class="subtitle">目前房間：<span id="current-room">大廳</span></p>
+      </div>
+      <div class="quick-rooms">
+        <label for="room-select">快速切換</label>
+        <select id="room-select">
+          <option value="大廳" selected>大廳</option>
+          <option value="技術">技術</option>
+          <option value="閒聊">閒聊</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="room-controls">
+      <input id="custom-room" autocomplete="off" placeholder="輸入房間名稱後加入或建立" />
+      <button id="join-room-btn">加入 / 建立房間</button>
+    </div>
+
     <ul id="messages"></ul>
     <form id="form">
       <input id="input" autocomplete="off" placeholder="輸入訊息..." />
