@@ -1,40 +1,63 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>聊天室</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <title>💬 即時聊天室</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div id="chat-container">
-    <div id="chat-header">
-      <div>
-        <h2>💬 即時聊天室</h2>
-        <p class="subtitle">目前房間：<span id="current-room">大廳</span></p>
-      </div>
-      <div class="quick-rooms">
-        <label for="room-select">快速切換</label>
-        <select id="room-select">
-          <option value="大廳" selected>大廳</option>
-          <option value="技術">技術</option>
-          <option value="閒聊">閒聊</option>
-        </select>
-      </div>
-    </div>
+  <div class="app">
 
-    <div id="room-controls">
-      <input id="custom-room" autocomplete="off" placeholder="輸入房間名稱後加入或建立" />
-      <button id="join-room-btn">加入 / 建立房間</button>
-    </div>
+    <!-- 左側：房間列表＋建立 / 加入房間 -->
+    <aside class="sidebar">
+      <h2>房間列表</h2>
+      <ul id="roomList" class="room-list"></ul>
 
-    <ul id="messages"></ul>
-    <form id="form">
-      <input id="input" autocomplete="off" placeholder="輸入訊息..." />
-      <button>送出</button>
-    </form>
+      <hr />
+
+      <div class="user-block">
+        <label>暱稱：</label>
+        <input id="usernameInput" type="text" placeholder="請輸入暱稱" />
+      </div>
+
+      <div class="room-block">
+        <label>房間名稱：</label>
+        <input id="roomNameInput" type="text" placeholder="請輸入房間名稱" />
+
+        <label>房間密碼：</label>
+        <input id="roomPasswordInput" type="password" placeholder="請輸入密碼（可留空）" />
+
+        <button id="createRoomBtn">建立房間</button>
+        <button id="joinRoomBtn">加入房間</button>
+      </div>
+    </aside>
+
+    <!-- 右側：聊天室 -->
+    <main class="chat">
+      <header class="chat-header">
+        <h2 id="currentRoomTitle">目前尚未加入任何房間</h2>
+      </header>
+
+      <section id="messages" class="messages"></section>
+
+      <footer class="chat-input-area">
+       <form id="chatForm" style="display: flex; gap: 8px; width: 100%;">
+        <input
+          id="messageInput"
+          type="text"
+          placeholder="輸入訊息後按 Enter 或點送出"
+          autocomplete="off"
+          style="flex: 1;"
+       />
+        <input id="imageInput" type="file" accept="image/*" />
+        <button id="sendBtn" type="submit">傳送</button>
+       </form>
+      </footer>
+
+    </main>
   </div>
 
+  <!-- Socket.io client -->
   <script src="/socket.io/socket.io.js"></script>
   <script src="script.js"></script>
 </body>

@@ -2,16 +2,19 @@
 // ====== 載入套件 ======
 const express = require('express');
 const http = require('http');
-const { Server } = require('socket.io');
 const path = require('path');
-const { v4: uuidv4 } = require('uuid'); // 用來產生訊息 id
+const mongoose = require('mongoose');
+const { Server } = require('socket.io');
+const bcrypt = require('bcrypt');
 
-// ====== 建立伺服器 ======
+const Message = require('./models/Message');
+const Room = require('./models/Room');
+
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-// ====== 提供前端靜態檔案 ======
+// ===== 靜態檔案 =====
 app.use(express.static(path.join(__dirname, '../client')));
 
 // ====== 房間資料 in memory ======
@@ -108,7 +111,106 @@ io.on('connection', (socket) => {
       });
       return;
     }
+  });
 
+  // 加入房間（必要時從 DB 把房間載回 cache）
+  socket.on('joinRoom', async ({ roomName, password, username }) => {
+    roomName = (roomName || '').trim();
+    username = (username || '匿名').trim() || '匿名';
+
+    try {
+      // 如果 cache 沒有這個房間，嘗試從 DB 找（重開伺服器後也能加入）
+      if (!roomsCache[roomName]) {
+        const roomFromDB = await Room.findOne({ name: roomName });
+        if (!roomFromDB) {
+          socket.emit('joinRoomResult', { ok: false, msg: '房間不存在' });
+          return;
+        }
+        roomsCache[roomName] = { passwordHash: roomFromDB.password || null, users: new Set() };
+      }
+
+      // 檢查密碼（bcrypt compare）
+      const passwordHash = roomsCache[roomName].passwordHash;
+      if (passwordHash) {
+        const ok = await bcrypt.compare(password || '', passwordHash);
+        if (!ok) {
+          socket.emit('joinRoomResult', { ok: false, msg: '密碼錯誤' });
+          return;
+        }
+      }
+
+      // 離開舊房間（更新舊房間人數）
+      if (socket.currentRoom && roomsCache[socket.currentRoom]) {
+        roomsCache[socket.currentRoom].users.delete(socket.id);
+        socket.leave(socket.currentRoom);
+      }
+
+      // 加入新房間（更新人數）
+      socket.join(roomName);
+      socket.currentRoom = roomName;
+      socket.username = username;
+      roomsCache[roomName].users.add(socket.id);
+
+      // 撈 DB 歷史訊息
+      const history = await Message.find({ roomName }).sort({ time: 1 }).limit(100);
+
+      socket.emit('joinRoomResult', {
+        ok: true,
+        msg: '加入成功',
+        roomName,
+        messages: history.map((m) => ({
+          id: m._id.toString(),
+          user: m.user,
+          type: m.type,
+          content: m.content,
+          time: m.time,
+        })),
+      });
+
+      // 更新房間列表（讓人數 0→1 立刻顯示）
+      io.emit('roomList', getRoomList());
+    } catch (err) {
+      console.error(err);
+      socket.emit('joinRoomResult', { ok: false, msg: '加入房間失敗' });
+    }
+  });
+
+  // 發送訊息（文字/圖片）：存 DB + 即時廣播
+  socket.on('sendMessage', async ({ roomName, type, content }) => {
+    if (!roomName) return;
+
+    try {
+      const saved = await Message.create({
+        roomName,
+        user: socket.username || '匿名',
+        type: type === 'image' ? 'image' : 'text',
+        content,
+        time: new Date(),
+      });
+
+      io.to(roomName).emit('newMessage', {
+        roomName,
+        message: {
+          id: saved._id.toString(),
+          user: saved.user,
+          type: saved.type,
+          content: saved.content,
+          time: saved.time,
+        },
+      });
+    } catch (err) {
+      console.error('❌ 儲存訊息失敗', err);
+    }
+  });
+
+  // 刪除訊息：刪 DB + 即時廣播
+  socket.on('deleteMessage', async ({ roomName, messageId }) => {
+    try {
+      await Message.deleteOne({ _id: messageId, roomName });
+      io.to(roomName).emit('messageDeleted', { roomName, messageId });
+    } catch (err) {
+      console.error('❌ 刪除訊息失敗', err);
+    }
     // 離開舊房間（如果有）
     if (socket.currentRoom) {
       socket.leave(socket.currentRoom);
@@ -169,6 +271,7 @@ io.on('connection', (socket) => {
     });
   });
 
+  // 離線：扣人數 + 更新房間列表
   socket.on('disconnect', () => {
     console.log('使用者離線', socket.id);
     // 人數有變，更新房間列表給所有人

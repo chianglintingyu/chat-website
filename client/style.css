@@ -1,123 +1,198 @@
-body {
-  background-color: #f5f7fa;
-  font-family: "Microsoft JhengHei", sans-serif;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  padding: 20px;
-  margin: 0;
-}
-
-#chat-container {
-  width: 100%;
-  max-width: 480px;
-  background: white;
-  border-radius: 10px;
-  box-shadow: 0 0 15px rgba(0,0,0,0.1);
-  padding: 20px;
+* {
   box-sizing: border-box;
 }
 
-#chat-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 16px;
-}
-
-h2 {
-  margin: 0 0 4px 0;
-}
-
-.subtitle {
+body {
   margin: 0;
-  color: #666;
-  font-size: 14px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: #f5f5f5;
 }
 
-.subtitle #current-room {
-  color: #4a90e2;
-  font-weight: 700;
+.app {
+  display: flex;
+  height: 100vh;
 }
 
-.quick-rooms {
+/* 左側 */
+.sidebar {
+  width: 260px;
+  background: #1f2933;
+  color: #fff;
+  padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  min-width: 130px;
+  gap: 12px;
+}
+
+.sidebar h2 {
+  margin: 0 0 8px;
+  font-size: 18px;
+}
+
+.room-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.room-item {
+  padding: 8px 10px;              /* 稍微大一點，比較像按鈕 */
+  margin-bottom: 4px;
+  background: #323f4b;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+
+  /* ⭐ 重點：過渡動畫 */
+  transition: 
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+/* ⭐ hover：顏色變亮，告訴使用者「可點」 */
+.room-item:hover {
+  background: #52606d;
+  color: #ffffff;
+}
+
+
+.user-block,
+.room-block {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
   font-size: 14px;
 }
 
-.quick-rooms label {
-  color: #333;
-}
-
-#room-select {
+.sidebar input {
   padding: 6px 8px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
+  border-radius: 4px;
+  border: none;
+  outline: none;
 }
 
-#room-controls {
+.sidebar button {
+  padding: 6px 10px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  background: #3b82f6;
+  color: #fff;
+  font-size: 14px;
+}
+
+.sidebar button + button {
+  margin-top: 4px;
+}
+
+.sidebar button:hover {
+  background: #2563eb;
+}
+
+/* 右側聊天室 */
+.chat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-header {
+  padding: 12px 16px;
+  background: #fff;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.chat-header h2 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.messages {
+  flex: 1;
+  padding: 12px 16px;
+  overflow-y: auto;
+}
+
+.message {
+  background: #fff;
+  border-radius: 8px;
+  padding: 8px 10px;
+  margin-bottom: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.message-header {
+  font-size: 12px;
+  color: #6b7280;
+  margin-bottom: 4px;
+}
+
+.message-body {
+  font-size: 14px;
+  margin-bottom: 4px;
+  word-wrap: break-word;
+}
+
+.message-image {
+  max-width: 240px;
+  max-height: 240px;
+  border-radius: 4px;
+  display: block;
+}
+
+.message-actions {
+  text-align: right;
+}
+
+.delete-btn {
+  border: none;
+  background: #ef4444;
+  color: #fff;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.delete-btn:hover {
+  background: #b91c1c;
+}
+
+/* 輸入區 */
+.chat-input-area {
   display: flex;
   gap: 8px;
-  margin: 12px 0;
-  flex-wrap: wrap;
+  padding: 10px 16px;
+  border-top: 1px solid #e5e7eb;
+  background: #fff;
 }
 
-#messages {
-  list-style: none;
-  padding: 0;
-  height: 320px;
-  overflow-y: auto;
-  border: 1px solid #ddd;
-  margin-bottom: 10px;
-  border-radius: 8px;
-}
-
-#messages li {
-  padding: 8px;
-  margin-bottom: 5px;
-  background: #e9f5ff;
-  border-radius: 5px;
-}
-
-#messages li.system {
-  background: #fff6d8;
-  color: #8a6d3b;
-  font-style: italic;
-}
-
-#form {
-  display: flex;
-  gap: 6px;
-}
-
-#input {
+.chat-input-area input[type='text'] {
   flex: 1;
-  padding: 8px;
-  border-radius: 5px;
-  border: 1px solid #ccc;
-}
-
-#custom-room {
-  flex: 1;
-  padding: 8px;
+  padding: 8px 10px;
   border-radius: 6px;
-  border: 1px solid #ccc;
+  border: 1px solid #d1d5db;
+  font-size: 14px;
 }
 
-button {
-  background-color: #4a90e2;
-  color: white;
+.chat-input-area input[type='file'] {
+  font-size: 12px;
+}
+
+.chat-input-area button {
+  padding: 8px 16px;
+  border-radius: 6px;
   border: none;
-  padding: 8px 15px;
-  border-radius: 5px;
+  background: #10b981;
+  color: #fff;
+  font-size: 14px;
   cursor: pointer;
-  white-space: nowrap;
 }
 
-button:hover {
-  background-color: #3a78c0;
+.chat-input-area button:hover {
+  background: #059669;
 }
+
+
