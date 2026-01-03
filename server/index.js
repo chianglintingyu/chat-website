@@ -1,5 +1,5 @@
 // server/index.js
-
+// ====== 載入套件 ======
 const express = require('express');
 const http = require('http');
 const path = require('path');
@@ -89,56 +89,8 @@ function getRoomList() {
 
 /* =====================
    帳號系統（API）
-===================== */
-
-app.post('/api/register', async (req, res) => {
-  const { email, password, nickname } = req.body;
-  if (!email || !password || !nickname) return res.json({ ok: false, msg: '資料不完整' });
-  const data = loadData();
-  if (data.users[email]) return res.json({ ok: false, msg: '帳號已存在' });
-  const passwordHash = await bcrypt.hash(password, 10);
-  data.users[email] = { email, passwordHash, nickname };
-  saveData(data);
-  res.json({ ok: true });
-});
-
-app.post('/api/login', async (req, res) => {
-  const { email, password } = req.body;
-  const data = loadData();
-  const user = data.users[email];
-  if (!user) return res.json({ ok: false, msg: '帳號不存在' });
-  const ok = await bcrypt.compare(password, user.passwordHash);
-  if (!ok) return res.json({ ok: false, msg: '密碼錯誤' });
-  res.json({
-    ok: true,
-    user: {
-      email,
-      nickname: user.nickname,
-      avatar: user.avatar || null 
-    },
-  });
-});
-
-app.post('/api/updateProfile', async (req, res) => {
-  const { email, nickname, avatar } = req.body;
-  const data = loadData();
-  const user = data.users[email];
-  if (!user) return res.json({ ok: false, msg: '找不到使用者' });
-  if (nickname) user.nickname = nickname;
-  if (avatar !== undefined) user.avatar = avatar; 
-  saveData(data);
-  res.json({ 
-    ok: true, 
-    user: { email: user.email, nickname: user.nickname, avatar: user.avatar || null }
-  });
-});
-
-/* =====================
-   Socket.io
-===================== */
-
 io.on('connection', (socket) => {
-  console.log('🔌 使用者連線', socket.id);
+  console.log('有使用者連線', socket.id);
 
   
 
@@ -331,6 +283,71 @@ io.on('connection', (socket) => {
   socket.on('disconnect', () => {
     if (socket.currentRoom && roomsCache[socket.currentRoom]) {
       roomsCache[socket.currentRoom].users.delete(socket.id);
+  // 一連進來就給他房間列表
+  socket.emit('roomList', getRoomList());
+
+  // 使用者要求重新拿房間列表（通常不太需要，但備用）
+  socket.on('getRooms', () => {
+    socket.emit('roomList', getRoomList());
+  });
+
+  // 建立房間
+  socket.on('createRoom', ({ roomName, password }) => {
+    roomName = (roomName || '').trim();
+
+    if (!roomName) {
+      socket.emit('createRoomResult', {
+        ok: false,
+        msg: '房間名稱不能空白',
+      });
+      return;
+    }
+
+    if (rooms[roomName]) {
+      socket.emit('createRoomResult', {
+        ok: false,
+        msg: '房間已存在，請換一個名稱',
+      });
+      return;
+    }
+
+    rooms[roomName] = {
+      password: password || null,
+      messages: [],
+    };
+
+    console.log(`建立房間：${roomName}`);
+
+    socket.emit('createRoomResult', {
+      ok: true,
+      msg: '房間建立成功',
+      roomName,
+    });
+
+    // 廣播更新房間列表給所有人
+    io.emit('roomList', getRoomList());
+  });
+
+  // 加入房間
+  socket.on('joinRoom', ({ roomName, password, username }) => {
+    roomName = (roomName || '').trim();
+    username = (username || '匿名').trim() || '匿名';
+
+    const room = rooms[roomName];
+    if (!room) {
+      socket.emit('joinRoomResult', {
+        ok: false,
+        msg: '房間不存在',
+      });
+      return;
+    }
+
+    if (room.password && room.password !== password) {
+      socket.emit('joinRoomResult', {
+        ok: false,
+        msg: '密碼錯誤',
+      });
+      return;
     }
     io.emit('roomList', getRoomList());
     console.log('❌ 使用者離線', socket.id);
@@ -560,10 +577,8 @@ io.on('connection', (socket) => {
     io.emit('roomList', getRoomList());
   });
 
-}); // end of io.on connection
-
-// [修正] server.listen 必須移到 io.on 外面
-const PORT = 3000;
+// ====== 啟動伺服器 ======
+const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-  console.log(`🚀 伺服器啟動：http://localhost:${PORT}`);
+  console.log(`伺服器已啟動：http://localhost:${PORT}`);
 });
