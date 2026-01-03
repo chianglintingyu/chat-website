@@ -1,0 +1,24 @@
+{
+  "users": {
+    "14173129": {
+      "email": "14173129",
+      "passwordHash": "$2b$10$Zjz4Ua5egnCjOIjxfHPAu.RNbr3cU1KMl9FHOG0wc/J4Seoe.QA8W",
+      "nickname": "ttt"
+    },
+    "clarice17009@gmail.com": {
+      "email": "clarice17009@gmail.com",
+      "passwordHash": "$2b$10$wzqpv.BTR2gzN1Nab5pOheNHx.roUfWvIPzT1pgJOTA5J04bHTdyW",
+      "nickname": "tan"
+    }
+  },
+  "rooms": {
+    "public_lobby": {
+      "password": null,
+      "admin": "SYSTEM",
+      "members": [],
+      "memberNicknames": {},
+      "displayName": "公共留言板"
+    }
+  },
+  "messages": []
+}
